@@ -9,7 +9,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import ethereum.Entry;
-import ethereum.Recorder;
+import ethereum.RecorderQueue;
 
 // https://uga.jyse.io/player.html?page=Dashboard&user=etu-1718-m2pgi-iot-03
 
@@ -54,7 +54,7 @@ public class SimpleMqttClient implements MqttCallback {
      * Recorder permettant d'ajouter en BDD les données de conduites une fois
      * complètes
      */
-    private final Recorder recorder;
+    private final RecorderQueue recorder;
 
     /**
      * l'entrée des données de conduite courrante
@@ -70,7 +70,8 @@ public class SimpleMqttClient implements MqttCallback {
      */
     public SimpleMqttClient() {
 	super();
-	this.recorder = new Recorder();
+	this.recorder = new RecorderQueue();
+	this.recorder.start();
 	String clientID = M2MIO_THING;
 	MqttConnectOptions connOpt = new MqttConnectOptions();
 	connOpt.setCleanSession(true);
@@ -165,16 +166,15 @@ public class SimpleMqttClient implements MqttCallback {
 	    this.currentEntry.setRpm(Integer.valueOf(message));
 	}
 	if (topic.equals("rot")) {
-	    this.currentEntry.setRot(Integer.valueOf(message));
+	    this.currentEntry.setRot(Math.abs(Integer.valueOf(message)));
 	}
 	if (topic.equals("spd")) {
 	    this.currentEntry.setSpd(Integer.valueOf(message));
 	}
 
 	if (this.currentEntry.isValid()) {
-	    boolean res = this.recorder.createRecord(this.currentEntry);
+	    this.recorder.addToQueue(this.currentEntry);
 	    this.currentEntry = null;
-	    System.out.println("Nouvelle entrée dans la blockchain => " + res);
 	}
     }
 }

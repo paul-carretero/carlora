@@ -100,4 +100,9 @@ public class Entry {
 	return this.spd != null && this.rpm != null && this.rot != null;
     }
 
+    @Override
+    public String toString() {
+	return "rpm:" + this.rpm + "; rot:" + this.rot + "; spd:" + this.spd;
+    }
+
 }

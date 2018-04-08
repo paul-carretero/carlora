@@ -11,14 +11,19 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 public class SimpleMqttPublisher extends Thread {
 
     /**
-     * sous topic mqtt où publier les informations
+     * réprésente la rotation du volant
      */
-    private MqttTopic topic;
+    private final MqttValue rot;
 
     /**
-     * valeur actuelle de la donnée de consuite
+     * représente la vitesse
      */
-    private String value;
+    private final MqttValue spd;
+
+    /**
+     * représente le nombre de tour par minute du moteur
+     */
+    private final MqttValue rpm;
 
     // ================================================================================
     // Constructors
@@ -27,12 +32,15 @@ public class SimpleMqttPublisher extends Thread {
     /**
      * créé une instance de publicateur simulé
      * 
-     * @param topic
+     * @param rot_t
+     * @param spd_t
+     * @param rpm_t
      */
-    public SimpleMqttPublisher(MqttTopic topic) {
+    public SimpleMqttPublisher(MqttTopic rot_t, MqttTopic spd_t, MqttTopic rpm_t) {
 	super();
-	this.topic = topic;
-	this.value = "0";
+	this.rot = new MqttValue(-180, 180, rot_t);
+	this.spd = new MqttValue(0, 200, spd_t);
+	this.rpm = new MqttValue(0, 6000, rpm_t);
     }
 
     // ================================================================================
@@ -46,30 +54,39 @@ public class SimpleMqttPublisher extends Thread {
     @Override
     public void run() {
 	while (!this.isInterrupted()) {
-	    MqttMessage message = new MqttMessage(this.value.getBytes());
-	    message.setQos(0);
-	    message.setRetained(false);
-	    MqttDeliveryToken token = null;
-	    try {
-		token = this.topic.publish(message);
-		token.waitForCompletion();
-		Thread.sleep(1000);
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
+	    publishValue(this.rot);
+	    publishValue(this.rpm);
+	    publishValue(this.spd);
+	    this.synchWait();
 	}
     }
 
-    // ================================================================================
-    // Setters
-    // ================================================================================
+    /**
+     * publie une valeur donnée
+     * 
+     * @param value
+     */
+    private static void publishValue(MqttValue value) {
+	MqttMessage message = new MqttMessage(value.getValue().getBytes());
+	message.setQos(0);
+	message.setRetained(false);
+
+	try {
+	    MqttDeliveryToken token = value.getTopic().publish(message);
+	    token.waitForCompletion();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+    }
 
     /**
-     * défini une nouvelle valeur pour la simulation
-     * 
-     * @param v
+     * permet d'attendre avant de générer une nouvelle valeur
      */
-    public void setValue(String v) {
-	this.value = v;
+    synchronized private void synchWait() {
+	try {
+	    this.wait(8000);
+	} catch (InterruptedException e) {
+	    this.interrupt();
+	}
     }
 }

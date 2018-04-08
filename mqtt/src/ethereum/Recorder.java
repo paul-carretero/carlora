@@ -83,7 +83,7 @@ public class Recorder {
 	} catch (Exception err) {
 	    System.err.println(err.getMessage());
 	}
-	System.out.println(isValid);
+	System.out.println("RECORDED [" + e.toString() + "] => " + isValid);
 	return isValid;
     }
 
