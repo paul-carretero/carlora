@@ -8,19 +8,69 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
-@SuppressWarnings("javadoc")
+import ethereum.Entry;
+import ethereum.Recorder;
+
+// https://uga.jyse.io/player.html?page=Dashboard&user=etu-1718-m2pgi-iot-03
+
+/**
+ * Client simple Mqtt recevant des données de conduite et les envoyant au
+ * service de blockchain
+ * 
+ */
 public class SimpleMqttClient implements MqttCallback {
 
+    /**
+     * adresse du broker (Mosquitto par exemple)
+     */
     private static final String BROKER_URL = "tcp://127.0.0.1:1883";
-    private static final String M2MIO_DOMAIN = "CarLoRa";
-    private static final String M2MIO_THING = "LoPy";
+
+    /**
+     * sujet principal
+     */
+    private static final String M2MIO_DOMAIN = "carlora";
+
+    /**
+     * sous sujet
+     */
+    private static final String M2MIO_THING = "lopy";
+
+    /**
+     * true si l'on doit afficher plus de log
+     */
     private static final boolean debug = false;
 
+    /**
+     * client Mqtt pour reception des données
+     */
     private MqttClient myClient;
-    private String myTopic;
 
+    /**
+     * topic d'écoute
+     */
+    private final String myTopic;
+
+    /**
+     * Recorder permettant d'ajouter en BDD les données de conduites une fois
+     * complètes
+     */
+    private final Recorder recorder;
+
+    /**
+     * l'entrée des données de conduite courrante
+     */
+    private Entry currentEntry;
+
+    // ================================================================================
+    // Constructors
+    // ================================================================================
+
+    /**
+     * créé une instance de client Mqtt
+     */
     public SimpleMqttClient() {
 	super();
+	this.recorder = new Recorder();
 	String clientID = M2MIO_THING;
 	MqttConnectOptions connOpt = new MqttConnectOptions();
 	connOpt.setCleanSession(true);
@@ -38,9 +88,9 @@ public class SimpleMqttClient implements MqttCallback {
 	this.myTopic = M2MIO_DOMAIN + "/" + M2MIO_THING;
     }
 
-    public MqttTopic getSubTopic(String name) {
-	return this.myClient.getTopic(this.myTopic + "/" + name);
-    }
+    // ================================================================================
+    // Class Methods
+    // ================================================================================
 
     @Override
     public void connectionLost(Throwable t) {
@@ -49,16 +99,37 @@ public class SimpleMqttClient implements MqttCallback {
 
     @Override
     public void messageArrived(String t, MqttMessage message) throws Exception {
+	String payload = new String(message.getPayload());
 	if (debug) {
 	    System.out.println("\n");
 	    System.out.println("-------------------------------------------------");
 	    System.out.println("| Topic:" + t);
-	    System.out.println("| Message: " + new String(message.getPayload()));
+	    System.out.println("| Message: " + payload);
 	    System.out.println("-------------------------------------------------");
 	    System.out.println("\n");
 	}
+
+	String[] topics = t.split("/");
+	String topic = topics[topics.length - 1];
+	this.MqttHandler(topic, payload);
     }
 
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+	// ok
+    }
+
+    /**
+     * @param name
+     * @return un sous sujet ayant le nom spécifié
+     */
+    public MqttTopic getSubTopic(String name) {
+	return this.myClient.getTopic(this.myTopic + "/" + name);
+    }
+
+    /**
+     * lance le client
+     */
     protected void run() {
 	try {
 	    this.myClient.subscribe(this.myTopic + "/+", 0);
@@ -67,6 +138,9 @@ public class SimpleMqttClient implements MqttCallback {
 	}
     }
 
+    /**
+     * permet de se déconnecter du broker
+     */
     protected void disconnect() {
 	try {
 	    this.myClient.disconnect();
@@ -75,8 +149,32 @@ public class SimpleMqttClient implements MqttCallback {
 	}
     }
 
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {
-	// ok
+    /**
+     * maintient à jour l'état courrant et si l'on dispose de toutes les
+     * informations alors met à jour la blockchain
+     * 
+     * @param topic
+     * @param message
+     */
+    protected void MqttHandler(String topic, String message) {
+	if (this.currentEntry == null) {
+	    this.currentEntry = new Entry();
+	}
+
+	if (topic.equals("rpm")) {
+	    this.currentEntry.setRpm(Integer.valueOf(message));
+	}
+	if (topic.equals("rot")) {
+	    this.currentEntry.setRot(Integer.valueOf(message));
+	}
+	if (topic.equals("spd")) {
+	    this.currentEntry.setSpd(Integer.valueOf(message));
+	}
+
+	if (this.currentEntry.isValid()) {
+	    boolean res = this.recorder.createRecord(this.currentEntry);
+	    this.currentEntry = null;
+	    System.out.println("Nouvelle entrée dans la blockchain => " + res);
+	}
     }
 }

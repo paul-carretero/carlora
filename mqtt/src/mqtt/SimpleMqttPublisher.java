@@ -4,17 +4,40 @@ import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
-@SuppressWarnings("javadoc")
+/**
+ * service de simulation de données mqtt
+ * 
+ */
 public class SimpleMqttPublisher extends Thread {
 
+    /**
+     * sous topic mqtt où publier les informations
+     */
     private MqttTopic topic;
+
+    /**
+     * valeur actuelle de la donnée de consuite
+     */
     private String value;
 
+    // ================================================================================
+    // Constructors
+    // ================================================================================
+
+    /**
+     * créé une instance de publicateur simulé
+     * 
+     * @param topic
+     */
     public SimpleMqttPublisher(MqttTopic topic) {
 	super();
 	this.topic = topic;
 	this.value = "0";
     }
+
+    // ================================================================================
+    // Class Methods
+    // ================================================================================
 
     /**
      * Publie un message et attends qu'il soit délivré au broker. Attends une
@@ -37,6 +60,15 @@ public class SimpleMqttPublisher extends Thread {
 	}
     }
 
+    // ================================================================================
+    // Setters
+    // ================================================================================
+
+    /**
+     * défini une nouvelle valeur pour la simulation
+     * 
+     * @param v
+     */
     public void setValue(String v) {
 	this.value = v;
     }
