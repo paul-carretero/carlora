@@ -11,33 +11,33 @@
 
 ### Mise en place du réseau Ethereum
 
-> `sudo docker network create ETH`
+- `sudo docker network create ETH`
 
 ### commandes node 1
 
-> `sudo docker run --rm -it -p 8545:8545 --net=ETH node_one`
-> `./eth_common/setup_account`
-> `geth --identity="NODE_ONE" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcaddr 0.0.0.0 console`
-> `admin.nodeInfo.enode`
-> `enode://<enode id node one>@[::]:30303`
-> `enode = "enode://<enode id node two>@172.21.0.3:30303"`
-> `admin.addPeer(enode)`
-> `admin.peers`
-> `exit`
-> `cd .ethereum/keystore`
-> `cat UTC--2018*`
-> -> copier coller le contenu dans le fichier wallet à la racine du dépot
-> `geth --identity="NODE_ONE" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcaddr 0.0.0.0 console`
+- `sudo docker run --rm -it -p 8545:8545 --net=ETH node_one`
+- `./eth_common/setup_account`
+- `geth --identity="NODE_ONE" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcaddr 0.0.0.0 console`
+- `admin.nodeInfo.enode`
+- `enode://<enode id node one>@[::]:30303`
+- `enode = "enode://<enode id node two>@172.21.0.3:30303"`
+- `admin.addPeer(enode)`
+- `admin.peers`
+- `exit`
+- `cd .ethereum/keystore`
+- `cat UTC--2018*`
+- -> copier coller le contenu dans le fichier wallet à la racine du dépot
+- `geth --identity="NODE_ONE" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcaddr 0.0.0.0 console`
 
 ### commandes node 2
 
-> `sudo docker run --rm -it -p 8546:8546 --net=ETH node_two`
-> `./eth_common/setup_account`
-> `geth --identity="NODE_TWO" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcport=8546 --rpcaddr 0.0.0.0 console`
-> `admin.nodeInfo.enode`
-> `enode://<enode id node two>@[::]:30303`
-> `enode = "enode://<enode id node one>@172.21.0.2:30303"`
-> `admin.addPeer(enode)`
-> `admin.peers`
+- `sudo docker run --rm -it -p 8546:8546 --net=ETH node_two`
+- `./eth_common/setup_account`
+- `geth --identity="NODE_TWO" --networkid="500" --verbosity=1 --mine --minerthreads=1 --rpc --rpcport=8546 --rpcaddr 0.0.0.0 console`
+- `admin.nodeInfo.enode`
+- `enode://<enode id node two>@[::]:30303`
+- `enode = "enode://<enode id node one>@172.21.0.2:30303"`
+- `admin.addPeer(enode)`
+- `admin.peers`
 
 
