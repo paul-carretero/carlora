@@ -23,7 +23,7 @@ public class SimpleMqttClient implements MqttCallback {
     /**
      * adresse du broker (Mosquitto par exemple)
      */
-    private static final String BROKER_URL = "tcp://127.0.0.1:1883";
+    private static final String BROKER_URL = "tcp://jorammq.jyse.io:1883";
 
     /**
      * sujet principal
@@ -38,7 +38,7 @@ public class SimpleMqttClient implements MqttCallback {
     /**
      * true si l'on doit afficher plus de log
      */
-    private static final boolean debug = false;
+    private static final boolean debug = true;
 
     /**
      * client Mqtt pour reception des données

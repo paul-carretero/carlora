@@ -84,7 +84,7 @@ public class SimpleMqttPublisher extends Thread {
      */
     synchronized private void synchWait() {
 	try {
-	    this.wait(8000);
+	    this.wait(5000);
 	} catch (InterruptedException e) {
 	    this.interrupt();
 	}
